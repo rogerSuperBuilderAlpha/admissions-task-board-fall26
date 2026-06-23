@@ -2,8 +2,8 @@ let tasks = [];
 let nextId = 1;
 
 export function getTasks() {
-  // BUG 1: returns internal reference — mutations leak; also forgets to sort by id
-  return tasks;
+  // Return a sorted copy so callers cannot mutate internal state.
+  return [...tasks].sort((a, b) => a.id - b.id);
 }
 
 export function createTask(title) {
@@ -21,13 +21,17 @@ export function updateTask(id, patch) {
   const task = tasks.find((t) => t.id === id);
   if (!task) return null;
   const idx = tasks.indexOf(task);
-  // BUG 2: rebuilds from patch only — drops title when patching { completed: true }
-  tasks[idx] = { id, ...patch };
+  // Merge the patch onto the existing task so untouched fields survive.
+  tasks[idx] = { ...task, ...patch, id: task.id };
   return tasks[idx];
 }
 
-// MISSING FEATURE: export function deleteTask(id) — not implemented
-// Tests expect DELETE /api/tasks/:id (applicant adds route + function)
+export function deleteTask(id) {
+  const idx = tasks.findIndex((t) => t.id === id);
+  if (idx === -1) return false;
+  tasks.splice(idx, 1);
+  return true;
+}
 
 export function _resetForTests() {
   tasks = [];
