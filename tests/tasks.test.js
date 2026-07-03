@@ -1,6 +1,6 @@
 import { describe, it, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
-import { createTask, getTasks, updateTask, _resetForTests } from '../src/store.js';
+import { createTask, deleteTask, getTasks, updateTask, _resetForTests } from '../src/store.js';
 
 beforeEach(() => _resetForTests());
 
@@ -24,5 +24,16 @@ describe('store', () => {
     const updated = updateTask(1, { completed: true });
     assert.equal(updated.title, 'Keep title');
     assert.equal(updated.completed, true);
+  });
+
+  it('deleteTask removes a task by id', () => {
+    createTask('Remove me');
+    createTask('Keep me');
+    const deleted = deleteTask(1);
+    assert.equal(deleted.id, 1);
+    assert.deepEqual(
+      getTasks().map((task) => task.title),
+      ['Keep me'],
+    );
   });
 });
