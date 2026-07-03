@@ -33,4 +33,21 @@ describe('PATCH /api/tasks/:id', () => {
     assert.equal(body.task.title, 'Test');
     assert.equal(body.task.completed, true);
   });
+
+  it('deletes a task via DELETE', async () => {
+    await fetch(`http://127.0.0.1:${port}/api/tasks`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title: 'Delete me' }),
+    });
+
+    const res = await fetch(`http://127.0.0.1:${port}/api/tasks/2`, {
+      method: 'DELETE',
+    });
+    assert.equal(res.status, 204);
+
+    const listRes = await fetch(`http://127.0.0.1:${port}/api/tasks`);
+    const body = await listRes.json();
+    assert.equal(body.tasks.some((task) => task.id === 2), false);
+  });
 });
