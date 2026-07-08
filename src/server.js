@@ -18,9 +18,9 @@ app.post('/api/tasks', (req, res) => {
   res.status(201).json({ task });
 });
 
-// BUG 3: wrong param name — route uses :id but handler reads req.params.taskId
+// BUG 3: wrong param name — route uses :id but handler reads req.params.id
 app.patch('/api/tasks/:id', (req, res) => {
-  const id = Number(req.params.taskId);
+  const id = Number(req.params.id);
   const { completed } = req.body;
   const task = updateTask(id, { completed });
   if (!task) return res.status(404).json({ error: 'not found' });
