@@ -34,3 +34,52 @@ describe('PATCH /api/tasks/:id', () => {
     assert.equal(body.task.completed, true);
   });
 });
+
+describe('DELETE /api/tasks/:id', () => {
+  let server;
+  let port;
+
+  before(async () => {
+    const { app } = await import('../src/server.js');
+    await new Promise((resolve) => {
+      server = app.listen(0, resolve);
+    });
+    port = server.address().port;
+  });
+
+  after(async () => {
+    await new Promise((resolve, reject) => server.close((err) => (err ? reject(err) : resolve())));
+  });
+
+  it('deletes a task via DELETE', async () => {
+    // Reset store before this test (we can import _resetForTests if needed, or just delete what we created)
+    const { _resetForTests } = await import('../src/store.js');
+    _resetForTests();
+
+    await fetch(`http://127.0.0.1:${port}/api/tasks`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title: 'Task to Delete' }),
+    });
+
+    const res = await fetch(`http://127.0.0.1:${port}/api/tasks/1`, {
+      method: 'DELETE',
+    });
+
+    assert.equal(res.status, 200);
+    const body = await res.json();
+    assert.equal(body.task.title, 'Task to Delete');
+
+    // Verify it is gone
+    const listRes = await fetch(`http://127.0.0.1:${port}/api/tasks`);
+    const listBody = await listRes.json();
+    assert.equal(listBody.tasks.length, 0);
+  });
+
+  it('returns 404 when deleting a non-existent task', async () => {
+    const res = await fetch(`http://127.0.0.1:${port}/api/tasks/999`, {
+      method: 'DELETE',
+    });
+    assert.equal(res.status, 404);
+  });
+});
