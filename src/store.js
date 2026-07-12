@@ -24,8 +24,12 @@ export function updateTask(id, patch) {
   return tasks[idx];
 }
 
-// MISSING FEATURE: export function deleteTask(id) — not implemented
-// Tests expect DELETE /api/tasks/:id (applicant adds route + function)
+export function deleteTask(id) {
+  const idx = tasks.findIndex((t) => t.id === id);
+  if (idx === -1) return false;
+  tasks.splice(idx, 1);
+  return true;
+}
 
 export function _resetForTests() {
   tasks = [];
