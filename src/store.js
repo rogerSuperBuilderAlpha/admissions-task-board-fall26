@@ -2,8 +2,7 @@ let tasks = [];
 let nextId = 1;
 
 export function getTasks() {
-  // BUG 1: returns internal reference — mutations leak; also forgets to sort by id
-  return tasks;
+  return [...tasks].sort((a, b) => a.id - b.id);
 }
 
 export function createTask(title) {
