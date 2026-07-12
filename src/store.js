@@ -20,8 +20,7 @@ export function updateTask(id, patch) {
   const task = tasks.find((t) => t.id === id);
   if (!task) return null;
   const idx = tasks.indexOf(task);
-  // BUG 2: rebuilds from patch only — drops title when patching { completed: true }
-  tasks[idx] = { id, ...patch };
+  tasks[idx] = { ...task, ...patch, id };
   return tasks[idx];
 }
 
