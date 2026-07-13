@@ -34,3 +34,40 @@ describe('PATCH /api/tasks/:id', () => {
     assert.equal(body.task.completed, true);
   });
 });
+
+describe('DELETE /api/tasks/:id', () => {
+  let server;
+  let port;
+
+  before(async () => {
+    const { app } = await import('../src/server.js');
+    await new Promise((resolve) => {
+      server = app.listen(0, resolve);
+    });
+    port = server.address().port;
+  });
+
+  after(async () => {
+    await new Promise((resolve, reject) => server.close((err) => (err ? reject(err) : resolve())));
+  });
+
+  it('deletes a task via DELETE', async () => {
+    const createRes = await fetch(`http://127.0.0.1:${port}/api/tasks`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title: 'Test Delete' }),
+    });
+    const createBody = await createRes.json();
+    const taskId = createBody.task.id;
+
+    const res = await fetch(`http://127.0.0.1:${port}/api/tasks/${taskId}`, {
+      method: 'DELETE',
+    });
+    assert.equal(res.status, 204);
+
+    const getRes = await fetch(`http://127.0.0.1:${port}/api/tasks`);
+    const body = await getRes.json();
+    const hasTask = body.tasks.some(t => t.id === taskId);
+    assert.equal(hasTask, false);
+  });
+});
