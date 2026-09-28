@@ -1,5 +1,5 @@
 import express from 'express';
-import { createTask, getTasks, updateTask, deleteTask } from './store.js';
+import { createTask, deleteTask, getTasks, updateTask } from './store.js';
 
 export const app = express();
 
@@ -27,10 +27,10 @@ app.patch('/api/tasks/:id', (req, res) => {
 });
 
 app.delete('/api/tasks/:id', (req, res) => {
-  if (!deleteTask(Number(req.params.id))) {
-    return res.status(404).json({ error: 'not found' });
-  }
-  res.status(204).end();
+  const id = Number(req.params.id);
+  const task = deleteTask(id);
+  if (!task) return res.status(404).json({ error: 'not found' });
+  res.json({ task });
 });
 
 app.get('/health', (_req, res) => res.json({ ok: true }));

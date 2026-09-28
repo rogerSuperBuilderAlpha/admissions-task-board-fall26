@@ -1,6 +1,6 @@
 import { describe, it, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
-import { createTask, getTasks, updateTask, deleteTask, _resetForTests } from '../src/store.js';
+import { createTask, deleteTask, getTasks, updateTask, _resetForTests } from '../src/store.js';
 
 beforeEach(() => _resetForTests());
 
@@ -42,11 +42,22 @@ describe('store', () => {
   it('deletes only the requested task and does not reuse ids', () => {
     createTask('A');
     createTask('B');
-    assert.equal(deleteTask(1), true);
-    assert.equal(deleteTask(1), false);
-    assert.equal(deleteTask(999), false);
+    assert.equal(deleteTask(1).id, 1);
+    assert.equal(deleteTask(1), null);
+    assert.equal(deleteTask(999), null);
     assert.deepEqual(getTasks().map((task) => task.id), [2]);
     assert.equal(updateTask(1, { completed: true }), null);
     assert.equal(createTask('C').id, 3);
+  });
+
+  it('deleteTask removes a task by id', () => {
+    createTask('Remove me');
+    createTask('Keep me');
+    const deleted = deleteTask(1);
+    assert.equal(deleted.id, 1);
+    assert.deepEqual(
+      getTasks().map((task) => task.title),
+      ['Keep me'],
+    );
   });
 });
