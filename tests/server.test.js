@@ -1,9 +1,11 @@
-import { describe, it, before, after } from 'node:test';
+import { describe, it, before, beforeEach, after } from 'node:test';
 import assert from 'node:assert/strict';
+import { _resetForTests } from '../src/store.js';
 
-describe('PATCH /api/tasks/:id', () => {
+describe('task API', () => {
   let server;
   let port;
+  beforeEach(() => _resetForTests());
 
   before(async () => {
     const { app } = await import('../src/server.js');
@@ -32,5 +34,35 @@ describe('PATCH /api/tasks/:id', () => {
     const body = await res.json();
     assert.equal(body.task.title, 'Test');
     assert.equal(body.task.completed, true);
+  });
+
+  it('creates, lists, and deletes a task', async () => {
+    const base = `http://127.0.0.1:${port}/api/tasks`;
+    const created = await fetch(base, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title: '  Delete me  ' }),
+    });
+    assert.equal(created.status, 201);
+    const { task } = await created.json();
+    assert.equal(task.title, 'Delete me');
+    const listed = await fetch(base);
+    assert.equal(listed.status, 200);
+    assert.deepEqual(await listed.json(), { tasks: [task] });
+    const deleted = await fetch(`${base}/${task.id}`, { method: 'DELETE' });
+    assert.equal(deleted.status, 204);
+    assert.equal(await deleted.text(), '');
+    assert.deepEqual(await (await fetch(base)).json(), { tasks: [] });
+    for (const id of [task.id, 999, 'invalid']) {
+      const missing = await fetch(`${base}/${id}`, { method: 'DELETE' });
+      assert.equal(missing.status, 404);
+      assert.deepEqual(await missing.json(), { error: 'not found' });
+    }
+    const patch = await fetch(`${base}/${task.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ completed: true }),
+    });
+    assert.equal(patch.status, 404);
   });
 });
